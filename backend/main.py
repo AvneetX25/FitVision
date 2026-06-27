@@ -7,13 +7,16 @@ from database import engine, Base
 from routes.analytics import router as analytics_router
 from routes.leaderboard import router as leaderboard_router
 from routes.coaching import router as coaching_router
+import os
 
 app = FastAPI(title="Gym Coach API")
 
-# CORS — must be before any routes
+
+origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173").split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
