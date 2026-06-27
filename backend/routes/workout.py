@@ -16,7 +16,7 @@ from schemas.workout import (
     SessionEnd,
 )
 from services.auth_service import get_current_user
-#from services.llm_service import generate_session_start, generate_session_end
+from services.llm_service import generate_session_start
 from services.llm_service import stream_post_set_coaching
 
 
