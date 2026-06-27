@@ -8,6 +8,7 @@ from routes.analytics import router as analytics_router
 from routes.leaderboard import router as leaderboard_router
 from routes.coaching import router as coaching_router
 import os
+from sqlalchemy import text
 
 app = FastAPI(title="Gym Coach API")
 
@@ -32,8 +33,12 @@ app.include_router(coaching_router)
 
 @app.on_event("startup")
 async def startup():
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    # Tables already exist in Supabase — no create_all needed
+    # Just verify DB connection is alive
+    async with engine.connect() as conn:
+        await conn.execute(text("SELECT 1"))
+    print("✅ Database connection verified")
+
 
 @app.get("/")
 async def root():

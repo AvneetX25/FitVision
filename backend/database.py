@@ -6,11 +6,6 @@ from config import settings
 engine = create_async_engine(
     settings.DATABASE_URL,
     echo=True,
-    connect_args={
-        "statement_cache_size": 0,
-        "prepared_statement_cache_size": 0,
-    },
-    execution_options={"no_parameters": True},
     pool_pre_ping=True,
 )
 
