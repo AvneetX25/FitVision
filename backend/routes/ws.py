@@ -60,22 +60,29 @@ async def pose_websocket(
             result = await loop.run_in_executor(
                 executor, engine.process_frame, frame_bytes
             )
-
+            # Send response FIRST — don't wait for DB
+            await websocket.send_json(result)
+            
+            
+           # Fire DB write in background — non-blocking
             if result.get("rep_just_completed") and session_id:
-                try:
-                    await save_rep(
+                    asyncio.create_task( save_rep(
                         db         = db,
                         session_id = session_id,
                         rep_number = result["rep_count"],
                         form_score = result["form_score"] if result["form_score"] is not None else 1.0,
                         violations = result.get("violations", []),
-                    )
-                except Exception as e:
-                    print(f"Failed to save rep {result['rep_count']}: {e}")
-
-            await websocket.send_json(result)
+                    ))
+                
 
     except WebSocketDisconnect:
         print(f"Client disconnected (exercise: {exercise}, session: {session_id})")
     finally:
         engine.pose.close()
+        
+# Current flow on rep completion:
+# inference → DB write (50-100ms) → send response
+
+# Fixed flow:
+# inference → send response immediately → DB write in background
+

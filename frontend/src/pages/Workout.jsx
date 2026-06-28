@@ -144,6 +144,11 @@ export default function Workout() {
     if (videoRef.current) {
       videoRef.current.srcObject = stream;
       await videoRef.current.play();
+      const canvas = frameRef.current;
+      if (canvas) {
+      canvas.width  = videoRef.current.videoWidth  || 1280;
+      canvas.height = videoRef.current.videoHeight || 720;
+    }
     }
     return true;
   } catch (err) {
@@ -172,8 +177,6 @@ export default function Workout() {
     if (waitingRef.current) return; // gate: skip if previous frame pending
 
     const ctx = canvas.getContext('2d');
-    canvas.width  = video.videoWidth  || 1280;
-    canvas.height = video.videoHeight || 720;
     ctx.drawImage(video, 0, 0);
 
     canvas.toBlob(blob => {
@@ -185,6 +188,13 @@ export default function Workout() {
     }, 'image/jpeg', 0.7);
   }, 200); // 5fps
 }
+
+function stopFrameLoop() {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  }
 
 function handleMessage(data) {
   waitingRef.current = false; // unlock gate — ready for next frame
