@@ -78,6 +78,7 @@ export default function Workout() {
   const repCountRef    = useRef(0);
   const formScoreRef   = useRef(100);
   const sessionIdRef   = useRef(null);
+  const waitingRef     = useRef(false);
 
   // Sync skeleton canvas size to the rendered video element size
   useEffect(() => {
@@ -159,49 +160,46 @@ export default function Workout() {
     if (videoRef.current) videoRef.current.srcObject = null;
   }
 
-  // ── Frame loop ─────────────────────────────────────────────────────────────
   function startFrameLoop() {
-    intervalRef.current = setInterval(() => {
-      const video  = videoRef.current;
-      const canvas = frameRef.current;
-      const ws     = wsRef.current;
+  waitingRef.current = false;
+  intervalRef.current = setInterval(() => {
+    const video  = videoRef.current;
+    const canvas = frameRef.current;
+    const ws     = wsRef.current;
 
-      if (!video || !canvas || !ws || ws.readyState !== WebSocket.OPEN) return;
-      if (video.readyState < 2) return;
+    if (!video || !canvas || !ws || ws.readyState !== WebSocket.OPEN) return;
+    if (video.readyState < 2) return;
+    if (waitingRef.current) return; // gate: skip if previous frame pending
 
-      const ctx = canvas.getContext('2d');
-      canvas.width  = video.videoWidth  || 1280;
-      canvas.height = video.videoHeight || 720;
-      ctx.drawImage(video, 0, 0);
+    const ctx = canvas.getContext('2d');
+    canvas.width  = video.videoWidth  || 1280;
+    canvas.height = video.videoHeight || 720;
+    ctx.drawImage(video, 0, 0);
 
-      canvas.toBlob(blob => {
-        if (blob && ws.readyState === WebSocket.OPEN) ws.send(blob);
-      }, 'image/jpeg', 0.7);
-    }, 100); // 10fps
-  }
+    canvas.toBlob(blob => {
+      if (blob && ws.readyState === WebSocket.OPEN) {
+        waitingRef.current = true; // lock gate before sending
+        setTimeout(() => { waitingRef.current = false; }, 2000); // auto-unlock after 2s
+        ws.send(blob);
+      }
+    }, 'image/jpeg', 0.7);
+  }, 200); // 5fps
+}
 
-  function stopFrameLoop() {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-  }
+function handleMessage(data) {
+  waitingRef.current = false; // unlock gate — ready for next frame
 
-  // ── WebSocket message handler ──────────────────────────────────────────────
-  function handleMessage(data) {
   if (data.landmarks?.length) {
     drawSkeleton(skeletonRef.current, data.landmarks);
   }
-
   if (data.rep_count !== undefined) {
-    repCountRef.current = data.rep_count;                          // ← keep ref in sync
+    repCountRef.current = data.rep_count;
     dispatch({ type: Actions.SET_REP_COUNT, payload: data.rep_count });
   }
   if (data.form_score !== undefined && data.form_score !== null) {
     formScoreRef.current = Math.round(data.form_score * 100);
     dispatch({ type: Actions.SET_FORM_SCORE, payload: Math.round(data.form_score * 100) });
   }
-  
   if (data.voice_cue) {
     dispatch({ type: Actions.SET_CUE, payload: data.voice_cue });
   }
