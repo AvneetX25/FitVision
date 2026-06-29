@@ -1,4 +1,4 @@
-# 🏋️ FitVision — AI-Powered Real-Time Gym Coach
+# 🏋️ FitVision: AI-Powered Real-Time Gym Coach
 
 > A production-grade workout tracking app that counts reps, scores form, and coaches you in real time using computer vision and large language models.
 
