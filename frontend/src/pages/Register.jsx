@@ -89,7 +89,7 @@ export default function Register() {
                 <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" strokeLinejoin="round" strokeLinecap="round"/>
               </svg>
             </div>
-            <h1 className="text-2xl font-black text-white">Join FitAI</h1>
+            <h1 className="text-2xl font-black text-white">Join FitVision</h1>
             <p className="text-slate-400 text-sm mt-1">Start your AI coaching journey today</p>
           </div>
 
