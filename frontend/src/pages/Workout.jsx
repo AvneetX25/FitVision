@@ -389,6 +389,7 @@ function handleMessage(data) {
 
   dispatch({ type: Actions.SET_SESSION_ACTIVE, payload: false });
   dispatch({ type: Actions.SET_WS_STATUS,      payload: 'disconnected' });
+  dispatch({ type: Actions.SET_CUE,            payload: '' });
 
   // ── Groq post-set coaching — streams into card AND speaks when done ──────
   if (reps > 0) {

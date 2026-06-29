@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { speakText } from '../utils/speech';
 
 export default function VoiceCoach({ cue }) {
-  const lastCueRef = useRef('');
+  const lastCueRef = useRef(cue);
   const voicesRef  = useRef([]);
 
   useEffect(() => {
