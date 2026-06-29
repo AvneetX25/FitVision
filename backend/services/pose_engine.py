@@ -370,7 +370,7 @@ class BicepCurlStateMachine:
     PAUSE_TIMEOUT  = 2.0
 
     def __init__(self):
-        self.state     = RepState.IDLE
+        self.state     = RepState.START
         self.rep_count = 0
         self.down_time = 0.0
         self.rep_start = 0.0
@@ -661,11 +661,8 @@ class PoseEngine:
             voice_cue = cue
 
         elif sm_result.get("voice_cue"):
-            # Mid-rep pause warning from state machine — respect cooldown
-            _, self.last_cue_time = build_voice_cue(
-                sm_result["rep_count"], 1.0, [],
-                self.last_cue_time,
-            )
+            voice_cue = sm_result["voice_cue"]
+        
 
         return {
             "state":              sm_result["state"],

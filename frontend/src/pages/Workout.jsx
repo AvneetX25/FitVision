@@ -8,6 +8,7 @@ import VoiceCoach from '../components/VoiceCoach';
 import CoachCard from '../components/CoachCard';
 import api from '../services/api';
 import ExerciseSelector from '../components/ExerciseSelector';
+import { speakText } from '../utils/speech';
 
 
 const CONNECTIONS = [
@@ -102,7 +103,7 @@ export default function Workout() {
   selectedExerciseRef.current = selectedExercise;
 }, [selectedExercise]);
 
-  function speak(text) {
+  {/*function speak(text) {
   if (!text || !window.speechSynthesis) return;
   window.speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(text);
@@ -118,7 +119,7 @@ export default function Workout() {
   utterance.voice = preferred || voices[0] || null;
   utterance.onerror = (e) => console.warn('SpeechSynthesis error:', e.error);
   window.speechSynthesis.speak(utterance);
-}
+}*/}
 
   // ── Camera ─────────────────────────────────────────────────────────────────
   async function startCamera() {
@@ -222,7 +223,7 @@ function handleMessage(data) {
     try {
       const savedToken = sessionStorage.getItem('gym_token');
 
-      const response = await fetch('/api/coaching/post-set', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || ''}/coaching/post-set`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -256,7 +257,7 @@ function handleMessage(data) {
           const text = line.slice(6);
           if (text === '[DONE]') {
             dispatch({ type: Actions.SET_COACHING_LOADING, payload: false });
-            speak(coachingAccRef.current);   // ← speak full text here
+            speakText(coachingAccRef.current, window.speechSynthesis.getVoices());   // ← speak full text here
             return;
           }
           coachingAccRef.current += text;
@@ -265,7 +266,7 @@ function handleMessage(data) {
       }
 
       // Fallback: if stream ends without [DONE], still speak whatever was accumulated
-      speak(coachingAccRef.current);
+      speakText(coachingAccRef.current, window.speechSynthesis.getVoices());
 
     } catch (err) {
       console.error('Post-set coaching failed:', err);
@@ -328,7 +329,7 @@ function handleMessage(data) {
     ws.onopen = () => {
       dispatch({ type: Actions.SET_WS_STATUS, payload: 'connected' });
       startFrameLoop();
-      speak(startLine);
+      speakText(startLine, window.speechSynthesis.getVoices());
     };
 
     ws.onmessage = (event) => {
